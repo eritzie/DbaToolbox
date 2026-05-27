@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pwsh:Invoke-Pester*)",
+      "Bash(pwsh:Invoke-ScriptAnalyzer*)",
+      "Bash(pwsh:Import-Module*)",
+      "Bash(pwsh:Test-ModuleManifest*)"
+    ]
+  }
+}

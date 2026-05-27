@@ -1,0 +1,18 @@
+# PowerShell
+*.pssproj.user
+*.user
+
+# Test output
+TestResults/
+*.xml
+
+# Editor
+.vs/
+.vscode/settings.json
+
+# OS
+Thumbs.db
+.DS_Store
+
+# PSGallery packaging
+*.nupkg
