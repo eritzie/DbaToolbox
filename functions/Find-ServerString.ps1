@@ -149,8 +149,7 @@ WHERE s.is_linked = 1
                 if ($ExcludeDatabase) { $getDbParams['ExcludeDatabase'] = $ExcludeDatabase }
 
                 foreach ($db in (Get-DbaDatabase @getDbParams)) {
-                    Write-Message -Level Verbose `
-                        -Message "Searching SQL modules in [$($db.Name)] on $($server.DomainInstanceName)"
+                    Write-Verbose "Searching SQL modules in [$($db.Name)] on $($server.DomainInstanceName)"
 
                     try {
                         $rows = Invoke-DbaQuery -SqlInstance $server -Database $db.Name `
@@ -180,8 +179,7 @@ WHERE s.is_linked = 1
 
             # --- Agent Job Steps ---
             if ('AgentJobs' -in $Type) {
-                Write-Message -Level Verbose `
-                    -Message "Searching Agent job steps on $($server.DomainInstanceName)"
+                Write-Verbose "Searching Agent job steps on $($server.DomainInstanceName)"
 
                 try {
                     $rows = Invoke-DbaQuery -SqlInstance $server -Database msdb `
@@ -210,8 +208,7 @@ WHERE s.is_linked = 1
 
             # --- Linked Servers ---
             if ('LinkedServers' -in $Type) {
-                Write-Message -Level Verbose `
-                    -Message "Searching linked servers on $($server.DomainInstanceName)"
+                Write-Verbose "Searching linked servers on $($server.DomainInstanceName)"
 
                 try {
                     $rows = Invoke-DbaQuery -SqlInstance $server `
