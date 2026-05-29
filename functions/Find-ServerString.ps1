@@ -135,28 +135,39 @@ WHERE s.is_linked = 1
             try {
                 $server = Connect-DbaInstance -SqlInstance $instance -SqlCredential $SqlCredential
             } catch {
-                Stop-Function -Message "Failed to connect to $instance" `
-                    -ErrorRecord $_ -Target $instance -EnableException $EnableException -Continue
+                if ($EnableException) { throw }
+                Write-Warning "Find-ServerString: Failed to connect to $instance : $_"
+                continue
             }
 
             # --- SQL Modules ---
             if ('SqlModules' -in $Type) {
-                $getDbParams = @{
-                    SqlInstance   = $server
+                $splatGetDb = @{
+                    SqlInstance   = $instance
                     ExcludeSystem = (-not $IncludeSystemDatabases.IsPresent)
                 }
-                if ($Database)        { $getDbParams['Database']        = $Database }
-                if ($ExcludeDatabase) { $getDbParams['ExcludeDatabase'] = $ExcludeDatabase }
+                if ($SqlCredential)   { $splatGetDb['SqlCredential']   = $SqlCredential }
+                if ($Database)        { $splatGetDb['Database']        = $Database }
+                if ($ExcludeDatabase) { $splatGetDb['ExcludeDatabase'] = $ExcludeDatabase }
 
-                foreach ($db in (Get-DbaDatabase @getDbParams)) {
+                foreach ($db in (Get-DbaDatabase @splatGetDb)) {
                     Write-Verbose "Searching SQL modules in [$($db.Name)] on $($server.DomainInstanceName)"
 
+                    $splatModuleQuery = @{
+                        SqlInstance     = $instance
+                        Database        = $db.Name
+                        Query           = $sqlModulesQuery
+                        SqlParameter    = $sqlParam
+                        EnableException = $true
+                    }
+                    if ($SqlCredential) { $splatModuleQuery['SqlCredential'] = $SqlCredential }
+
                     try {
-                        $rows = Invoke-DbaQuery -SqlInstance $server -Database $db.Name `
-                            -Query $sqlModulesQuery -SqlParameter $sqlParam -EnableException
+                        $rows = Invoke-DbaQuery @splatModuleQuery
                     } catch {
-                        Stop-Function -Message "SQL module search failed in $($db.Name) on $instance" `
-                            -ErrorRecord $_ -Target $db.Name -EnableException $EnableException -Continue
+                        if ($EnableException) { throw }
+                        Write-Warning "Find-ServerString: SQL module search failed in $($db.Name) on $instance : $_"
+                        continue
                     }
 
                     foreach ($row in $rows) {
@@ -181,12 +192,21 @@ WHERE s.is_linked = 1
             if ('AgentJobs' -in $Type) {
                 Write-Verbose "Searching Agent job steps on $($server.DomainInstanceName)"
 
+                $splatAgentQuery = @{
+                    SqlInstance     = $instance
+                    Database        = 'msdb'
+                    Query           = $agentJobsQuery
+                    SqlParameter    = $sqlParam
+                    EnableException = $true
+                }
+                if ($SqlCredential) { $splatAgentQuery['SqlCredential'] = $SqlCredential }
+
                 try {
-                    $rows = Invoke-DbaQuery -SqlInstance $server -Database msdb `
-                        -Query $agentJobsQuery -SqlParameter $sqlParam -EnableException
+                    $rows = Invoke-DbaQuery @splatAgentQuery
                 } catch {
-                    Stop-Function -Message "Agent job search failed on $instance" `
-                        -ErrorRecord $_ -Target $instance -EnableException $EnableException -Continue
+                    if ($EnableException) { throw }
+                    Write-Warning "Find-ServerString: Agent job search failed on $instance : $_"
+                    continue
                 }
 
                 foreach ($row in $rows) {
@@ -210,12 +230,20 @@ WHERE s.is_linked = 1
             if ('LinkedServers' -in $Type) {
                 Write-Verbose "Searching linked servers on $($server.DomainInstanceName)"
 
+                $splatLinkedQuery = @{
+                    SqlInstance     = $instance
+                    Query           = $linkedServersQuery
+                    SqlParameter    = $sqlParam
+                    EnableException = $true
+                }
+                if ($SqlCredential) { $splatLinkedQuery['SqlCredential'] = $SqlCredential }
+
                 try {
-                    $rows = Invoke-DbaQuery -SqlInstance $server `
-                        -Query $linkedServersQuery -SqlParameter $sqlParam -EnableException
+                    $rows = Invoke-DbaQuery @splatLinkedQuery
                 } catch {
-                    Stop-Function -Message "Linked server search failed on $instance" `
-                        -ErrorRecord $_ -Target $instance -EnableException $EnableException -Continue
+                    if ($EnableException) { throw }
+                    Write-Warning "Find-ServerString: Linked server search failed on $instance : $_"
+                    continue
                 }
 
                 foreach ($row in $rows) {

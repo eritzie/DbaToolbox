@@ -78,7 +78,9 @@ Find-ServerString -SqlInstance 'SQL01' -SearchString 'oldserver' |
 
 | Property     | Notes                                                   |
 |--------------|---------------------------------------------------------|
-| SqlInstance  | Instance name                                           |
+| ComputerName | Host name of the SQL Server                             |
+| InstanceName | SQL Server instance name                                |
+| SqlInstance  | Fully qualified instance name                           |
 | Database     | Database name; `$null` for server-level results         |
 | Type         | `SqlModule`, `AgentJob`, or `LinkedServer`              |
 | SchemaName   | Populated for `SqlModule` results only                  |
