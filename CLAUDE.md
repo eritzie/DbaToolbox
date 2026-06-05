@@ -3,6 +3,19 @@
 Personal PowerShell module complementing dbatools for SQL Server DBA workflows.
 Not affiliated with dbatools. Requires dbatools >= 2.0 and PowerShell 5.1+.
 
+## Session Initialization
+
+At the start of every session, read these two files before doing anything else:
+
+1. `feedback.md` — corrections, stated preferences, and behavioral rules. Treat as standing
+   instructions that override defaults.
+2. `handoff.md` — current project state, open issues, decisions made, next steps.
+
+If either file fails to load, say so immediately before proceeding.
+
+At the end of any session where decisions were made or work progressed, emit an updated
+`handoff.md`. Update `feedback.md` if new corrections or preferences surfaced.
+
 ## Project structure
 
 ```
