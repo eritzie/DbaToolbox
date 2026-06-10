@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration>
   <ViewDefinitions>
+
+    <!-- Find-ServerString -->
     <View>
       <Name>DbaToolbox.SearchResult</Name>
       <ViewSelectedBy>
@@ -8,56 +10,555 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader>
-            <Label>SqlInstance</Label>
-            <Width>25</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Database</Label>
-            <Width>20</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Type</Label>
-            <Width>14</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>SchemaName</Label>
-            <Width>15</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>ObjectName</Label>
-            <Width>40</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>ObjectType</Label>
-            <Width>30</Width>
-          </TableColumnHeader>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Database</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SchemaName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ObjectName</Label><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ObjectType</Label><Width>30</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
             <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>SqlInstance</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Database</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Type</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>SchemaName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>ObjectName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>ObjectType</PropertyName>
-              </TableColumnItem>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Database</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Type</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SchemaName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ObjectName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ObjectType</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
       </TableControl>
     </View>
+
+    <!-- Get-BlockingSession -->
+    <View>
+      <Name>DbaToolbox.BlockingSession</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.BlockingSession</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SessionId</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>BlockingSessionId</Label><Width>17</Width></TableColumnHeader>
+          <TableColumnHeader><Label>BlockedSessionCount</Label><Width>19</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitType</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>BlockingSessionId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>BlockedSessionCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-ConnectionSummary -->
+    <View>
+      <Name>DbaToolbox.ConnectionSummary</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.ConnectionSummary</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Host</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Program</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Command</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ConnectionCount</Label><Width>15</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Host</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Program</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Command</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ConnectionCount</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-DatabaseSize (summary) -->
+    <View>
+      <Name>DbaToolbox.DatabaseSize</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.DatabaseSize</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TotalSizeMB</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UsedMB</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FreeMB</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UsedPct</Label><Width>8</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalSizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UsedMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FreeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UsedPct</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-DatabaseSize -IncludeFiles (file detail) -->
+    <View>
+      <Name>DbaToolbox.DatabaseFile</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.DatabaseFile</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LogicalName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TypeDescription</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SizeMB</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FreeMB</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AutoGrowth</Label><Width>12</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LogicalName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TypeDescription</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FreeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AutoGrowth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-DeadlockHistory (default) -->
+    <View>
+      <Name>DbaToolbox.DeadlockEvent</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.DeadlockEvent</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DeadlockId</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>EventTime</Label><Width>23</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>VictimProcess</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CapturedAt</Label><Width>23</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DeadlockId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EventTime</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>VictimProcess</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CapturedAt</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-DeadlockHistory -Summary -->
+    <View>
+      <Name>DbaToolbox.DeadlockSummary</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.DeadlockSummary</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DeadlockCount</Label><Width>13</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FirstSeen</Label><Width>23</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastSeen</Label><Width>23</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DeadlockCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FirstSeen</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastSeen</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-DeadlockHistory -Id (graph, omit the wide XML column from default view) -->
+    <View>
+      <Name>DbaToolbox.DeadlockGraph</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.DeadlockGraph</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DeadlockId</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>EventTime</Label><Width>23</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>VictimProcess</Label><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DeadlockId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EventTime</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>VictimProcess</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-FailedJob -->
+    <View>
+      <Name>DbaToolbox.FailedJob</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.FailedJob</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>JobName</Label><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Label>RunDate</Label><Width>23</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Duration</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Message</Label><Width>60</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>JobName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RunDate</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Duration</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Message</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-LongRunningJob -->
+    <View>
+      <Name>DbaToolbox.LongRunningJob</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.LongRunningJob</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>JobName</Label><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Label>StartDate</Label><Width>23</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CurrentDuration</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AvgDuration</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Multiplier</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>JobName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>StartDate</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CurrentDuration</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AvgDuration</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Multiplier</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-LongRunningQuery -->
+    <View>
+      <Name>DbaToolbox.LongRunningQuery</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.LongRunningQuery</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SessionId</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ElapsedTime</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>BlockingSessionId</Label><Width>17</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ElapsedTime</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>BlockingSessionId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-OpenTransaction -->
+    <View>
+      <Name>DbaToolbox.OpenTransaction</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.OpenTransaction</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SessionId</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TranStartTime</Label><Width>23</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TranStartTime</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-TempdbConfig (best practice) -->
+    <View>
+      <Name>DbaToolbox.TempdbBestPractice</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.TempdbBestPractice</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Rule</Label><Width>35</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CurrentSetting</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Recommended</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IsBestPractice</Label><Width>14</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Rule</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CurrentSetting</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Recommended</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsBestPractice</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-TempdbConfig (file detail) -->
+    <View>
+      <Name>DbaToolbox.TempdbFile</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.TempdbFile</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FileName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FileType</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SizeMB</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FreeMB</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FreePct</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AutoGrowth</Label><Width>12</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FileName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FileType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FreeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FreePct</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AutoGrowth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-TempdbContention -->
+    <View>
+      <Name>DbaToolbox.TempdbContention</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.TempdbContention</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SessionId</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitType</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitDurationMs</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ResourceDescription</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitDurationMs</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ResourceDescription</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-TopQuery -->
+    <View>
+      <Name>DbaToolbox.TopQuery</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.TopQuery</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ExecutionCount</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TotalCpuSec</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AvgCpuSec</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AvgElapsedSec</Label><Width>13</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ExecutionCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalCpuSec</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AvgCpuSec</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AvgElapsedSec</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-VersionStoreUsage (totals) -->
+    <View>
+      <Name>DbaToolbox.VersionStoreTotal</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.VersionStoreTotal</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>VersionStoreMB</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UserObjectMB</Label><Width>13</Width></TableColumnHeader>
+          <TableColumnHeader><Label>InternalObjectMB</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>VersionStoreMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UserObjectMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InternalObjectMB</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-VersionStoreUsage (per-database) -->
+    <View>
+      <Name>DbaToolbox.VersionStoreUsage</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.VersionStoreUsage</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ReservedMB</Label><Width>12</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ReservedMB</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-VersionStoreUsage (snapshot isolation databases) -->
+    <View>
+      <Name>DbaToolbox.SnapshotIsolationDatabase</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.SnapshotIsolationDatabase</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SnapshotState</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>RCSIEnabled</Label><Width>12</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SnapshotState</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RCSIEnabled</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>

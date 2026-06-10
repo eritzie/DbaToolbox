@@ -8,7 +8,19 @@
     RequiredModules   = @('dbatools')
     FormatsToProcess  = @('DbaToolbox.Format.ps1xml')
     FunctionsToExport = @(
-        'Find-ServerString'
+        'Find-ServerString',
+        'Get-BlockingSession',
+        'Get-ConnectionSummary',
+        'Get-DatabaseSize',
+        'Get-DeadlockHistory',
+        'Get-FailedJob',
+        'Get-LongRunningJob',
+        'Get-LongRunningQuery',
+        'Get-OpenTransaction',
+        'Get-TempdbConfig',
+        'Get-TempdbContention',
+        'Get-TopQuery',
+        'Get-VersionStoreUsage'
     )
     CmdletsToExport   = @()
     VariablesToExport = @()
