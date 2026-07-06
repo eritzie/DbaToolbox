@@ -16,3 +16,8 @@ Thumbs.db
 
 # PSGallery packaging
 *.nupkg
+
+# Local Claude overrides
+CLAUDE.local.md
+handoff.md
+feedback.md
