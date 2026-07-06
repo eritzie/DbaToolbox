@@ -7,13 +7,16 @@
         Compares the current runtime of each executing Agent job against its average successful
         run duration from history. Jobs running longer than (average * Multiplier) are returned.
 
-        Jobs with no successful history are excluded — there is no baseline to compare against.
+        Jobs with no successful history — or whose successful runs all report zero-second
+        durations — are excluded; there is no meaningful baseline to compare against.
 
-        IMPORTANT: SQL Server SMO Job objects do not expose an actual start time for a currently
-        running job. This function uses LastRunDate as a proxy for the current start time. On jobs
-        that run infrequently, LastRunDate may not reflect the current execution's actual start,
-        leading to inaccurate current duration estimates. This limitation is inherent to the
-        SMO interface.
+        The current start time comes from the StartDate property that Get-DbaRunningJob
+        attaches from msdb.dbo.sysjobactivity.start_execution_date. If StartDate is not
+        populated, LastRunDate is used as a fallback proxy, which may be inaccurate for
+        infrequently running jobs.
+
+        The average is computed from successful runs in the last 30 days of job history
+        so the baseline reflects recent behavior.
 
     .PARAMETER SqlInstance
         One or more SQL Server instances to query. Accepts strings, DbaInstanceParameter
@@ -75,41 +78,48 @@
 
             Write-Verbose "Checking for long-running jobs on $($server.DomainInstanceName)"
 
-            $splatRunning = @{
-                SqlInstance = $instance
-            }
-            if ($SqlCredential) { $splatRunning['SqlCredential'] = $SqlCredential }
-
             try {
-                $running = Get-DbaRunningJob @splatRunning |
-                    Where-Object { $_.Name -notin $ExcludeJob }
+                $running = @(Get-DbaRunningJob -SqlInstance $server |
+                    Where-Object { $_.Name -notin $ExcludeJob })
             } catch {
                 if ($EnableException) { throw }
                 Write-Warning "Get-LongRunningJob: Failed to retrieve running jobs from $instance : $_"
                 continue
             }
 
+            if (-not $running) { continue }
+
+            # One history call for all running jobs, bounded to the last 30 days
+            $splatHistory = @{
+                SqlInstance     = $server
+                Job             = $running.Name
+                StartDate       = (Get-Date).AddDays(-30)
+                ExcludeJobSteps = $true
+                EnableException = $true
+            }
+
+            try {
+                $history = Get-DbaAgentJobHistory @splatHistory |
+                    Where-Object { $_.Status -eq 'Succeeded' } |
+                    Group-Object -Property Job -AsHashTable -AsString
+            } catch {
+                Write-Verbose "Get-LongRunningJob: Could not retrieve job history on $instance : $_"
+                continue
+            }
+
+            if (-not $history) { continue }
+
             foreach ($job in $running) {
-                $splatHistory = @{
-                    SqlInstance     = $instance
-                    Job             = $job.Name
-                    ExcludeJobSteps = $true
-                    EnableException = $true
-                }
-                if ($SqlCredential) { $splatHistory['SqlCredential'] = $SqlCredential }
+                $jobHistory = $history[$job.Name]
+                if (-not $jobHistory) { continue }
 
-                try {
-                    $history = Get-DbaAgentJobHistory @splatHistory |
-                        Where-Object { $_.Status -eq 'Succeeded' }
-                } catch {
-                    Write-Verbose "Get-LongRunningJob: Could not retrieve history for '$($job.Name)' on $instance : $_"
-                    continue
-                }
+                $avgSeconds = ($jobHistory | ForEach-Object { $_.Duration.TotalSeconds } | Measure-Object -Average).Average
+                if ($avgSeconds -le 0) { continue }
 
-                if (-not $history) { continue }
-
-                $avgSeconds     = ($history | ForEach-Object { $_.Duration.TotalSeconds } | Measure-Object -Average).Average
-                $currentSeconds = [math]::Max(0, (New-TimeSpan -Start $job.LastRunDate -End (Get-Date)).TotalSeconds)
+                # StartDate comes from sysjobactivity.start_execution_date via Get-DbaRunningJob;
+                # LastRunDate is a fallback proxy only
+                $startDate      = if ($job.StartDate) { $job.StartDate } else { $job.LastRunDate }
+                $currentSeconds = [math]::Max(0, (New-TimeSpan -Start $startDate -End (Get-Date)).TotalSeconds)
 
                 if ($currentSeconds -gt ($avgSeconds * $Multiplier)) {
                     [PSCustomObject]@{
@@ -118,7 +128,7 @@
                         InstanceName    = $server.InstanceName
                         SqlInstance     = $server.DomainInstanceName
                         JobName         = $job.Name
-                        StartDate       = $job.LastRunDate
+                        StartDate       = $startDate
                         CurrentDuration = [timespan]::FromSeconds([math]::Round($currentSeconds, 0))
                         AvgDuration     = [timespan]::FromSeconds([math]::Round($avgSeconds, 0))
                         Multiplier      = [math]::Round($currentSeconds / $avgSeconds, 1)

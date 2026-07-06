@@ -54,11 +54,12 @@
     )
 
     begin {
+        # sys.dm_db_file_space_usage returns one row per tempdb data file — SUM for totals
         $totalQuery = "
 SELECT
-    [version_store_reserved_page_count]   * 8 / 1024 AS VersionStoreMB,
-    [user_object_reserved_page_count]     * 8 / 1024 AS UserObjectMB,
-    [internal_object_reserved_page_count] * 8 / 1024 AS InternalObjectMB
+    SUM([version_store_reserved_page_count])   * 8 / 1024 AS VersionStoreMB,
+    SUM([user_object_reserved_page_count])     * 8 / 1024 AS UserObjectMB,
+    SUM([internal_object_reserved_page_count]) * 8 / 1024 AS InternalObjectMB
 FROM [sys].[dm_db_file_space_usage]
 WHERE [database_id] = 2;
 "
@@ -96,10 +97,9 @@ ORDER BY [name];
             Write-Verbose "Getting version store usage on $($server.DomainInstanceName)"
 
             $splatBase = @{
-                SqlInstance     = $instance
+                SqlInstance     = $server
                 EnableException = $true
             }
-            if ($SqlCredential) { $splatBase['SqlCredential'] = $SqlCredential }
 
             # --- Version Store Totals ---
             try {
@@ -122,22 +122,32 @@ ORDER BY [name];
                 }
             }
 
-            # --- Per-Database Version Store (SQL 2016 SP2+) ---
-            try {
-                $perDb = Invoke-DbaQuery @splatBase -Database 'master' -Query $perDbQuery
+            # --- Per-Database Version Store (requires SQL 2016 SP2+, build 13.0.5026) ---
+            $supportsPerDb = $server.VersionMajor -ge 14 -or
+                ($server.VersionMajor -eq 13 -and $server.BuildNumber -ge 5026)
+
+            if (-not $supportsPerDb) {
+                Write-Warning "Get-VersionStoreUsage: sys.dm_tran_version_store_space_usage requires SQL 2016 SP2+ — skipping per-database rows on $instance ($($server.VersionMajor).$($server.BuildNumber))"
+            } else {
+                try {
+                    $perDb = Invoke-DbaQuery @splatBase -Database 'master' -Query $perDbQuery
+                } catch {
+                    if ($EnableException) { throw }
+                    Write-Warning "Get-VersionStoreUsage: Per-database version store query failed on $instance : $_"
+                    $perDb = $null
+                }
+
                 foreach ($row in $perDb) {
                     [PSCustomObject]@{
-                        PSTypeName     = 'DbaToolbox.VersionStoreUsage'
-                        ComputerName   = $server.ComputerName
-                        InstanceName   = $server.InstanceName
-                        SqlInstance    = $server.DomainInstanceName
-                        DatabaseName   = $row.DatabaseName
-                        ReservedMB     = $row.ReservedMB
+                        PSTypeName      = 'DbaToolbox.VersionStoreUsage'
+                        ComputerName    = $server.ComputerName
+                        InstanceName    = $server.InstanceName
+                        SqlInstance     = $server.DomainInstanceName
+                        DatabaseName    = $row.DatabaseName
+                        ReservedMB      = $row.ReservedMB
                         ReservedSpaceMB = $row.ReservedSpaceMB
                     }
                 }
-            } catch {
-                Write-Warning "Get-VersionStoreUsage: Per-database version store query not available on $instance (requires SQL 2016 SP2+)"
             }
 
             # --- Snapshot Isolation Databases ---

@@ -22,7 +22,7 @@ Describe 'Get-DatabaseSize' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaDbFile {
+                Mock Get-DbaDbFile -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Database              = 'AppDB'
@@ -95,7 +95,7 @@ Describe 'Get-DatabaseSize' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaDbFile {
+                Mock Get-DbaDbFile -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Database              = 'AppDB'
@@ -152,7 +152,7 @@ Describe 'Get-DatabaseSize' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Get-DbaDbFile { @() }
+                Mock Get-DbaDbFile -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

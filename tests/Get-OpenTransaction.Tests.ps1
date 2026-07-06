@@ -22,18 +22,23 @@ Describe 'Get-OpenTransaction' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaWhoIsActive {
+                # Mirrors real sp_WhoIsActive -GetTransactionInfo output: adds
+                # tran_start_time, tran_log_writes, implicit_tran. There is NO
+                # tran_log_used_percent column. open_tran_count arrives as a string.
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
-                            session_id            = '75'
-                            status                = 'sleeping'
-                            blocking_session_id   = ''
-                            tran_start_time       = '2026-06-09 10:00:00.000'
-                            tran_log_used_percent = '5.2'
-                            database_name         = 'AppDB'
-                            login_name            = 'domain\user1'
-                            host_name             = 'WKSTN01'
-                            sql_text              = 'BEGIN TRAN'
+                            session_id          = '75'
+                            status              = 'sleeping'
+                            blocking_session_id = ''
+                            open_tran_count     = '1'
+                            tran_start_time     = [datetime]'2026-07-06 10:00:00'
+                            tran_log_writes     = 'AppDB: 42 (2 kB)'
+                            implicit_tran       = 'OFF'
+                            database_name       = 'AppDB'
+                            login_name          = 'domain\user1'
+                            host_name           = 'WKSTN01'
+                            sql_text            = 'BEGIN TRAN'
                         }
                     )
                 }
@@ -54,12 +59,19 @@ Describe 'Get-OpenTransaction' {
             $props  | Should -Contain 'SessionId'
             $props  | Should -Contain 'Status'
             $props  | Should -Contain 'BlockingSessionId'
+            $props  | Should -Contain 'OpenTranCount'
             $props  | Should -Contain 'TranStartTime'
-            $props  | Should -Contain 'TranLogUsedPercent'
+            $props  | Should -Contain 'TranLogWrites'
+            $props  | Should -Contain 'ImplicitTran'
             $props  | Should -Contain 'DatabaseName'
             $props  | Should -Contain 'LoginName'
             $props  | Should -Contain 'HostName'
             $props  | Should -Contain 'SqlText'
+        }
+
+        It 'Casts OpenTranCount to int' {
+            $result = Get-OpenTransaction -SqlInstance 'SQL01'
+            $result.OpenTranCount | Should -BeOfType [int]
         }
     }
 
@@ -73,38 +85,42 @@ Describe 'Get-OpenTransaction' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaWhoIsActive {
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' {
                     @(
                         # Has open transaction — should be included
                         [PSCustomObject]@{
-                            session_id            = '80'
-                            status                = 'sleeping'
-                            blocking_session_id   = ''
-                            tran_start_time       = '2026-06-09 09:00:00.000'
-                            tran_log_used_percent = '2.0'
-                            database_name         = 'AppDB'
-                            login_name            = 'domain\user1'
-                            host_name             = 'WKSTN01'
-                            sql_text              = 'BEGIN TRAN'
+                            session_id          = '80'
+                            status              = 'sleeping'
+                            blocking_session_id = ''
+                            open_tran_count     = '2'
+                            tran_start_time     = [datetime]'2026-07-06 09:00:00'
+                            tran_log_writes     = 'AppDB: 10 (1 kB)'
+                            implicit_tran       = 'OFF'
+                            database_name       = 'AppDB'
+                            login_name          = 'domain\user1'
+                            host_name           = 'WKSTN01'
+                            sql_text            = 'BEGIN TRAN'
                         },
                         # No open transaction — should be excluded
                         [PSCustomObject]@{
-                            session_id            = '81'
-                            status                = 'sleeping'
-                            blocking_session_id   = ''
-                            tran_start_time       = $null
-                            tran_log_used_percent = $null
-                            database_name         = 'AppDB'
-                            login_name            = 'domain\user2'
-                            host_name             = 'WKSTN02'
-                            sql_text              = $null
+                            session_id          = '81'
+                            status              = 'sleeping'
+                            blocking_session_id = ''
+                            open_tran_count     = '0'
+                            tran_start_time     = [DBNull]::Value
+                            tran_log_writes     = $null
+                            implicit_tran       = 'OFF'
+                            database_name       = 'AppDB'
+                            login_name          = 'domain\user2'
+                            host_name           = 'WKSTN02'
+                            sql_text            = $null
                         }
                     )
                 }
             }
         }
 
-        It 'Returns only sessions with a non-null tran_start_time' {
+        It 'Returns only sessions with open_tran_count greater than zero' {
             $result = Get-OpenTransaction -SqlInstance 'SQL01'
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 1
@@ -122,7 +138,7 @@ Describe 'Get-OpenTransaction' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Invoke-DbaWhoIsActive { @() }
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

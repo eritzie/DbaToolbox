@@ -22,7 +22,7 @@ Describe 'Get-ConnectionSummary' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaProcess {
+                Mock Get-DbaProcess -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Database = 'AppDB'
@@ -31,7 +31,6 @@ Describe 'Get-ConnectionSummary' {
                             Program  = 'SSMS'
                             Status   = 'sleeping'
                             Command  = 'AWAITING COMMAND'
-                            WaitType = $null
                         },
                         [PSCustomObject]@{
                             Database = 'AppDB'
@@ -40,7 +39,6 @@ Describe 'Get-ConnectionSummary' {
                             Program  = 'SSMS'
                             Status   = 'sleeping'
                             Command  = 'AWAITING COMMAND'
-                            WaitType = $null
                         }
                     )
                 }
@@ -64,7 +62,6 @@ Describe 'Get-ConnectionSummary' {
             $props  | Should -Contain 'Program'
             $props  | Should -Contain 'Status'
             $props  | Should -Contain 'Command'
-            $props  | Should -Contain 'WaitType'
             $props  | Should -Contain 'ConnectionCount'
         }
 
@@ -85,7 +82,7 @@ Describe 'Get-ConnectionSummary' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaProcess {
+                Mock Get-DbaProcess -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Database = 'AppDB'
@@ -94,7 +91,6 @@ Describe 'Get-ConnectionSummary' {
                             Program  = 'SSMS'
                             Status   = 'sleeping'
                             Command  = 'AWAITING COMMAND'
-                            WaitType = $null
                         },
                         [PSCustomObject]@{
                             Database = 'OtherDB'
@@ -103,7 +99,6 @@ Describe 'Get-ConnectionSummary' {
                             Program  = 'App'
                             Status   = 'running'
                             Command  = 'SELECT'
-                            WaitType = $null
                         }
                     )
                 }
@@ -133,7 +128,7 @@ Describe 'Get-ConnectionSummary' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Get-DbaProcess { @() }
+                Mock Get-DbaProcess -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

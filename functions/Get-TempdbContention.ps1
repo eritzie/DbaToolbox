@@ -5,13 +5,15 @@
 
     .DESCRIPTION
         Queries sys.dm_os_waiting_tasks joined to sys.dm_exec_sessions for PAGELATCH_*
-        waits on resource pages in database 2 (TempDB). Contention on PFS, GAM, and SGAM
-        pages indicates that TempDB needs more data files (best practice: one per logical
-        CPU core, up to 8).
+        waits on resource pages in database 2 (TempDB). All TempDB page-latch waits are
+        returned; the PageType column classifies each waited-on page as PFS, GAM, SGAM,
+        or Other. Contention on PFS, GAM, and SGAM allocation pages indicates that TempDB
+        needs more data files (best practice: one per logical CPU core, up to 8).
 
-        PFS pages occur at file offsets 1, 8088, 16176, etc.
-        GAM pages occur at offset 2 and every ~64,000 pages thereafter.
-        SGAM pages occur at offset 3 and every ~64,000 pages thereafter.
+        Page intervals per the Microsoft pages-and-extents architecture guide:
+        PFS  = page 1, then every 8,088 pages.
+        GAM  = page 2, repeating per ~64,000-extent (511,232-page) interval.
+        SGAM = page 3, on the same interval as GAM.
 
     .PARAMETER SqlInstance
         One or more SQL Server instances to query. Accepts strings, DbaInstanceParameter
@@ -77,12 +79,11 @@ ORDER BY [t].[wait_duration_ms] DESC;
             Write-Verbose "Checking TempDB PAGELATCH waits on $($server.DomainInstanceName)"
 
             $splatQuery = @{
-                SqlInstance     = $instance
+                SqlInstance     = $server
                 Database        = 'master'
                 Query           = $query
                 EnableException = $true
             }
-            if ($SqlCredential) { $splatQuery['SqlCredential'] = $SqlCredential }
 
             try {
                 $rows = Invoke-DbaQuery @splatQuery
@@ -93,6 +94,18 @@ ORDER BY [t].[wait_duration_ms] DESC;
             }
 
             foreach ($row in $rows) {
+                # resource_description is db:file:page — classify allocation pages.
+                # Intervals: PFS every 8088 pages from page 1; GAM page 2 and SGAM page 3
+                # repeating per 511,232-page (~64,000 extent) interval.
+                $pageType = 'Other'
+                if ($row.resource_description -match '^\d+:\d+:(\d+)$') {
+                    $pageId = [long]$Matches[1]
+                    $pageType = if ($pageId -eq 1 -or $pageId % 8088 -eq 0) { 'PFS' }
+                    elseif ($pageId -eq 2 -or $pageId % 511232 -eq 0) { 'GAM' }
+                    elseif ($pageId -eq 3 -or ($pageId - 1) % 511232 -eq 0) { 'SGAM' }
+                    else { 'Other' }
+                }
+
                 [PSCustomObject]@{
                     PSTypeName           = 'DbaToolbox.TempdbContention'
                     ComputerName         = $server.ComputerName
@@ -103,6 +116,7 @@ ORDER BY [t].[wait_duration_ms] DESC;
                     WaitType             = $row.wait_type
                     WaitDurationMs       = $row.wait_duration_ms
                     ResourceDescription  = $row.resource_description
+                    PageType             = $pageType
                     LoginName            = $row.login_name
                     HostName             = $row.host_name
                     ProgramName          = $row.program_name

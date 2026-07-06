@@ -1,12 +1,13 @@
 ﻿function Get-FailedJob {
     <#
     .SYNOPSIS
-        Returns SQL Server Agent jobs that failed within a specified time window.
+        Returns every SQL Server Agent job failure within a specified time window.
 
     .DESCRIPTION
-        Queries Agent job history on one or more SQL Server instances and returns jobs
-        whose most recent run ended with a Failed status. Job steps are excluded from
-        results — only the job-level outcome is returned.
+        Queries Agent job history on one or more SQL Server instances and returns every
+        job-level failure in the look-back window — including jobs that later succeeded
+        on retry. Job steps are excluded from results — only the job-level outcome is
+        returned.
 
         Use HoursBack to control the look-back window (default 24 hours).
         Use ExcludeJob to suppress known expected failures.
@@ -70,12 +71,11 @@
             Write-Verbose "Getting failed job history on $($server.DomainInstanceName)"
 
             $splatHistory = @{
-                SqlInstance     = $instance
+                SqlInstance     = $server
                 StartDate       = (Get-Date).AddHours(-$HoursBack)
                 ExcludeJobSteps = $true
                 EnableException = $true
             }
-            if ($SqlCredential) { $splatHistory['SqlCredential'] = $SqlCredential }
 
             try {
                 $history = Get-DbaAgentJobHistory @splatHistory

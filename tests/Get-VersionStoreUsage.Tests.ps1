@@ -20,10 +20,12 @@ Describe 'Get-VersionStoreUsage' {
                         ComputerName       = 'SQL01'
                         InstanceName       = 'MSSQLSERVER'
                         DomainInstanceName = 'SQL01'
+                        VersionMajor       = 15
+                        BuildNumber        = 4280
                     }
                 }
                 # tempdb query → VersionStoreTotal shape
-                Mock Invoke-DbaQuery -ParameterFilter { $Database -eq 'tempdb' } {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' -ParameterFilter { $Database -eq 'tempdb' } {
                     [PSCustomObject]@{
                         VersionStoreMB   = 25
                         UserObjectMB     = 100
@@ -32,7 +34,7 @@ Describe 'Get-VersionStoreUsage' {
                 }
                 # master queries → first call returns per-db usage, second returns snapshot dbs
                 $script:masterCallCount = 0
-                Mock Invoke-DbaQuery -ParameterFilter { $Database -eq 'master' } {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' -ParameterFilter { $Database -eq 'master' } {
                     $script:masterCallCount++
                     if ($script:masterCallCount -eq 1) {
                         [PSCustomObject]@{
@@ -88,45 +90,43 @@ Describe 'Get-VersionStoreUsage' {
         }
     }
 
-    Context 'Handles missing sys.dm_tran_version_store_space_usage gracefully' {
+    Context 'Skips per-database rows on pre-2016 SP2 instances' {
         BeforeAll {
             InModuleScope DbaToolbox {
+                # SQL 2016 pre-SP2 (SP2 = build 13.0.5026)
                 Mock Connect-DbaInstance {
                     [PSCustomObject]@{
                         ComputerName       = 'SQL01'
                         InstanceName       = 'MSSQLSERVER'
                         DomainInstanceName = 'SQL01'
+                        VersionMajor       = 13
+                        BuildNumber        = 4001
                     }
                 }
-                Mock Invoke-DbaQuery -ParameterFilter { $Database -eq 'tempdb' } {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' -ParameterFilter { $Database -eq 'tempdb' } {
                     [PSCustomObject]@{
                         VersionStoreMB   = 5
                         UserObjectMB     = 20
                         InternalObjectMB = 2
                     }
                 }
-                # Simulate SQL 2016 SP2+ not available — first master call throws
-                $script:masterCallCount2 = 0
-                Mock Invoke-DbaQuery -ParameterFilter { $Database -eq 'master' } {
-                    $script:masterCallCount2++
-                    if ($script:masterCallCount2 -eq 1) {
-                        throw 'Invalid object name sys.dm_tran_version_store_space_usage'
-                    }
-                    # Second call (snapshot query) succeeds with empty results
-                    @()
-                }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' -ParameterFilter { $Database -eq 'master' } { @() }
             }
         }
 
-        BeforeEach {
-            $script:masterCallCount2 = 0
-        }
-
-        It 'Writes a warning but does not throw when per-db query fails' {
+        It 'Writes a warning but does not throw' {
             { Get-VersionStoreUsage -SqlInstance 'SQL01' -WarningAction SilentlyContinue } | Should -Not -Throw
         }
 
-        It 'Still returns VersionStoreTotal when per-db query fails' {
+        It 'Emits no VersionStoreUsage rows and never queries the DMV' {
+            $result = Get-VersionStoreUsage -SqlInstance 'SQL01' -WarningAction SilentlyContinue
+            $perDb  = $result | Where-Object { $_.PSObject.TypeNames[0] -eq 'DbaToolbox.VersionStoreUsage' }
+            $perDb | Should -BeNullOrEmpty
+            # Only the snapshot-isolation query should hit master
+            Should -Invoke Invoke-DbaQuery -ModuleName DbaToolbox -Times 1 -Exactly -ParameterFilter { $Database -eq 'master' }
+        }
+
+        It 'Still returns VersionStoreTotal' {
             $result = Get-VersionStoreUsage -SqlInstance 'SQL01' -WarningAction SilentlyContinue
             $totals = $result | Where-Object { $_.PSObject.TypeNames[0] -eq 'DbaToolbox.VersionStoreTotal' }
             $totals | Should -Not -BeNullOrEmpty
@@ -143,7 +143,7 @@ Describe 'Get-VersionStoreUsage' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

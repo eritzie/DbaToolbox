@@ -22,7 +22,7 @@ Describe 'Get-TempdbConfig' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Test-DbaTempDbConfig {
+                Mock Test-DbaTempDbConfig -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Rule           = 'TF 1118 Enabled'
@@ -33,7 +33,7 @@ Describe 'Get-TempdbConfig' {
                         }
                     )
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 
@@ -68,8 +68,8 @@ Describe 'Get-TempdbConfig' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Test-DbaTempDbConfig { @() }
-                Mock Invoke-DbaQuery {
+                Mock Test-DbaTempDbConfig -RemoveParameterType 'SqlInstance' { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         FileName     = 'tempdev'
                         FileType     = 'ROWS'
@@ -104,6 +104,39 @@ Describe 'Get-TempdbConfig' {
         }
     }
 
+    Context 'Best-practice failure does not leak prior instance results' {
+        BeforeAll {
+            InModuleScope DbaToolbox {
+                Mock Connect-DbaInstance {
+                    [PSCustomObject]@{
+                        ComputerName       = "$SqlInstance"
+                        InstanceName       = 'MSSQLSERVER'
+                        DomainInstanceName = "$SqlInstance"
+                    }
+                }
+                # First instance succeeds; second instance's check throws
+                Mock Test-DbaTempDbConfig -RemoveParameterType 'SqlInstance' {
+                    if ("$SqlInstance" -like '*SQL02*') { throw 'access denied' }
+                    [PSCustomObject]@{
+                        Rule           = 'TF 1118 Enabled'
+                        CurrentSetting = 'False'
+                        Recommended    = 'True'
+                        IsBestPractice = $false
+                        Notes          = 'Enable trace flag 1118'
+                    }
+                }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
+            }
+        }
+
+        It 'Does not re-emit the first instance rows under the failing instance name' {
+            $result = 'SQL01', 'SQL02' | Get-TempdbConfig -WarningAction SilentlyContinue |
+                Where-Object { $_.PSObject.TypeNames[0] -eq 'DbaToolbox.TempdbBestPractice' }
+            @($result).Count | Should -Be 1
+            $result.SqlInstance | Should -Be 'SQL01'
+        }
+    }
+
     Context 'Pipeline input' {
         BeforeAll {
             InModuleScope DbaToolbox {
@@ -114,8 +147,8 @@ Describe 'Get-TempdbConfig' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Test-DbaTempDbConfig { @() }
-                Mock Invoke-DbaQuery { @() }
+                Mock Test-DbaTempDbConfig -RemoveParameterType 'SqlInstance' { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

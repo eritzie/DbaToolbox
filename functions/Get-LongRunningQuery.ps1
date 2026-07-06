@@ -6,11 +6,11 @@
 
     .DESCRIPTION
         Uses sp_WhoIsActive (via Invoke-DbaWhoIsActive) to capture currently executing
-        sessions and filters by elapsed time. The elapsed_time column from sp_WhoIsActive
-        is a formatted time string (h:mm:ss.fff) — this function parses it correctly as
-        a TimeSpan before comparing against the threshold.
+        sessions and filters by elapsed time. Elapsed time is computed from the start_time
+        and collection_time datetime columns rather than the formatted runtime string
+        ('dd hh:mm:ss.mss'), so multi-day runtimes are handled correctly.
 
-        Sessions where elapsed_time cannot be parsed are silently skipped.
+        Sessions without a valid start_time are silently skipped.
 
         Requires sp_WhoIsActive installed in master on each instance.
         Install with: Install-DbaWhoIsActive -SqlInstance <instance>
@@ -69,12 +69,10 @@
             Write-Verbose "Checking for long-running queries on $($server.DomainInstanceName)"
 
             $splatWia = @{
-                SqlInstance      = $instance
-                FindBlockLeaders = $true
-                GetOuterCommand  = $true
-                As               = 'PSObject'
+                SqlInstance     = $server
+                GetOuterCommand = $true
+                As              = 'PSObject'
             }
-            if ($SqlCredential) { $splatWia['SqlCredential'] = $SqlCredential }
 
             try {
                 $sessions = Invoke-DbaWhoIsActive @splatWia
@@ -85,10 +83,11 @@
             }
 
             foreach ($session in $sessions) {
-                # elapsed_time from sp_WhoIsActive is a formatted string (e.g. '0:00:05.123'),
-                # not milliseconds — TryParse handles h:mm:ss.fff correctly.
-                $elapsed = [timespan]::Zero
-                if (-not [timespan]::TryParse($session.elapsed_time, [ref]$elapsed)) { continue }
+                # sp_WhoIsActive has no elapsed_time column; its runtime column is the
+                # formatted string 'dd hh:mm:ss.mss', which TimeSpan cannot parse past 24h.
+                # start_time and collection_time are real datetimes — compute from those.
+                if ($session.start_time -isnot [datetime] -or $session.collection_time -isnot [datetime]) { continue }
+                $elapsed = New-TimeSpan -Start $session.start_time -End $session.collection_time
                 if ($elapsed.TotalSeconds -le $ThresholdSeconds) { continue }
 
                 [PSCustomObject]@{
@@ -98,10 +97,12 @@
                     SqlInstance       = $server.DomainInstanceName
                     SessionId         = $session.session_id -as [int]
                     ElapsedTime       = $elapsed
+                    Status            = $session.status
                     BlockingSessionId = $session.blocking_session_id -as [int]
                     DatabaseName      = $session.database_name
                     LoginName         = $session.login_name
                     HostName          = $session.host_name
+                    ProgramName       = $session.program_name
                     SqlText           = $session.sql_text
                     SqlCommand        = $session.sql_command
                 }

@@ -44,8 +44,8 @@ DbaToolbox/
 ## PowerShell conventions
 
 - `[DbaInstanceParameter[]]` for `$SqlInstance` — always, no exceptions.
-- `-EnableException [switch]` — always include; pass `$EnableException` to `Stop-Function`.
-- `Stop-Function -Continue` inside `foreach` loops so one bad instance doesn't abort all.
+- `-EnableException [switch]` — always include. On a per-instance failure: `if ($EnableException) { throw } else { Write-Warning ...; continue }`.
+  **Never call `Stop-Function`** — it is a private dbatools alias not available to external modules.
 - `Write-Message -Level Verbose` for progress output. PSFramework is available when dbatools is loaded.
 - Parameterized SQL via `Invoke-DbaQuery -SqlParameter @{ Key = $Value }` — never interpolate user input into query strings.
 - No `Out-GridView`, no `Format-*` inside functions — callers decide presentation.

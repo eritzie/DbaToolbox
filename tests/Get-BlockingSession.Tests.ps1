@@ -22,18 +22,24 @@ Describe 'Get-BlockingSession' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaWhoIsActive {
+                # Mirrors real sp_WhoIsActive output: wait_info is a combined string,
+                # numerics arrive as strings (@format_output = 1), start_time is datetime.
+                # There is NO wait_type, wait_time, or elapsed_time column.
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             session_id            = '61'
                             blocking_session_id   = ''
                             blocked_session_count = '1'
-                            wait_type             = 'ASYNC_IO_COMPLETION'
-                            wait_time             = '32440753ms'
+                            wait_info             = '(32440753ms)ASYNC_IO_COMPLETION'
+                            start_time            = (Get-Date).AddMinutes(-540)
+                            collection_time       = Get-Date
                             database_name         = 'AppDB'
                             login_name            = 'domain\user1'
                             sql_text              = 'SELECT 1'
                             host_name             = 'WKSTN01'
+                            program_name          = 'SSMS'
+                            status                = 'suspended'
                             locks                 = $null
                             sql_command           = $null
                         }
@@ -56,7 +62,8 @@ Describe 'Get-BlockingSession' {
             $props  | Should -Contain 'SessionId'
             $props  | Should -Contain 'BlockingSessionId'
             $props  | Should -Contain 'BlockedSessionCount'
-            $props  | Should -Contain 'WaitType'
+            $props  | Should -Contain 'WaitInfo'
+            $props  | Should -Contain 'StartTime'
             $props  | Should -Contain 'DatabaseName'
             $props  | Should -Contain 'LoginName'
             $props  | Should -Contain 'SqlText'
@@ -65,6 +72,11 @@ Describe 'Get-BlockingSession' {
         It 'Casts SessionId to int' {
             $result = Get-BlockingSession -SqlInstance 'SQL01'
             $result.SessionId | Should -BeOfType [int]
+        }
+
+        It 'Passes wait_info through unaltered' {
+            $result = Get-BlockingSession -SqlInstance 'SQL01'
+            $result.WaitInfo | Should -Be '(32440753ms)ASYNC_IO_COMPLETION'
         }
     }
 
@@ -78,19 +90,22 @@ Describe 'Get-BlockingSession' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaWhoIsActive {
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' {
                     @(
                         # Head blocker — blocked_session_count > 0
                         [PSCustomObject]@{
                             session_id            = '55'
                             blocking_session_id   = ''
                             blocked_session_count = '2'
-                            wait_type             = $null
-                            wait_time             = $null
+                            wait_info             = $null
+                            start_time            = (Get-Date).AddMinutes(-10)
+                            collection_time       = Get-Date
                             database_name         = 'AppDB'
                             login_name            = 'domain\blocker'
                             sql_text              = 'BEGIN TRAN'
                             host_name             = 'WKSTN01'
+                            program_name          = 'SSMS'
+                            status                = 'sleeping'
                             locks                 = $null
                             sql_command           = $null
                         },
@@ -99,12 +114,15 @@ Describe 'Get-BlockingSession' {
                             session_id            = '60'
                             blocking_session_id   = ''
                             blocked_session_count = '0'
-                            wait_type             = $null
-                            wait_time             = $null
+                            wait_info             = $null
+                            start_time            = (Get-Date).AddSeconds(-5)
+                            collection_time       = Get-Date
                             database_name         = 'AppDB'
                             login_name            = 'domain\user'
                             sql_text              = 'SELECT 1'
                             host_name             = 'WKSTN02'
+                            program_name          = 'App'
+                            status                = 'running'
                             locks                 = $null
                             sql_command           = $null
                         }
@@ -121,6 +139,61 @@ Describe 'Get-BlockingSession' {
         }
     }
 
+    Context '-Detailed switch' {
+        BeforeAll {
+            InModuleScope DbaToolbox {
+                Mock Connect-DbaInstance {
+                    [PSCustomObject]@{
+                        ComputerName       = 'SQL01'
+                        InstanceName       = 'MSSQLSERVER'
+                        DomainInstanceName = 'SQL01'
+                    }
+                }
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' { @() }
+            }
+        }
+
+        It 'Requests locks, task info, and outer command from sp_WhoIsActive' {
+            Get-BlockingSession -SqlInstance 'SQL01' -Detailed | Out-Null
+            Should -Invoke Invoke-DbaWhoIsActive -ModuleName DbaToolbox -Times 1 -Exactly -ParameterFilter {
+                $GetLocks -eq $true -and $GetTaskInfo -eq 2 -and $GetOuterCommand -eq $true
+            }
+        }
+
+        It 'Does not request outer command when -Detailed is omitted' {
+            Get-BlockingSession -SqlInstance 'SQL01' | Out-Null
+            Should -Invoke Invoke-DbaWhoIsActive -ModuleName DbaToolbox -Times 1 -Exactly -ParameterFilter {
+                -not $PSBoundParameters.ContainsKey('GetOuterCommand')
+            }
+        }
+    }
+
+    Context 'Connection resilience' {
+        BeforeAll {
+            InModuleScope DbaToolbox {
+                Mock Connect-DbaInstance {
+                    if ("$SqlInstance" -like '*BAD*') { throw 'connection refused' }
+                    [PSCustomObject]@{
+                        ComputerName       = 'SQL01'
+                        InstanceName       = 'MSSQLSERVER'
+                        DomainInstanceName = 'SQL01'
+                    }
+                }
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' { @() }
+            }
+        }
+
+        It 'Warns and continues to the next instance when one connection fails' {
+            Get-BlockingSession -SqlInstance 'SQL-BAD', 'SQL01' -WarningAction SilentlyContinue -WarningVariable w | Out-Null
+            $w | Should -Not -BeNullOrEmpty
+            Should -Invoke Invoke-DbaWhoIsActive -ModuleName DbaToolbox -Times 1 -Exactly
+        }
+
+        It 'Throws on connection failure when -EnableException is set' {
+            { Get-BlockingSession -SqlInstance 'SQL-BAD' -EnableException } | Should -Throw
+        }
+    }
+
     Context 'Pipeline input' {
         BeforeAll {
             InModuleScope DbaToolbox {
@@ -131,7 +204,7 @@ Describe 'Get-BlockingSession' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Invoke-DbaWhoIsActive { @() }
+                Mock Invoke-DbaWhoIsActive -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

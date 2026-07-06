@@ -60,6 +60,7 @@
 
         [PSCredential] $SqlCredential,
 
+        [ValidateRange(1, [int]::MaxValue)]
         [int] $Top = 25,
 
         [ValidateSet('CPU', 'LogicalReads', 'LogicalWrites')]
@@ -95,7 +96,7 @@
 
         $query = "
 SELECT TOP (@TopN)
-    DB_NAME([qt].[dbid])                                                     AS DatabaseName,
+    COALESCE(DB_NAME([qt].[dbid]), '<ad hoc>')                               AS DatabaseName,
     [qs].[execution_count]                                                   AS ExecutionCount,
     [qs].[total_worker_time]       / 1000000.0                               AS TotalCpuSec,
     [qs].[total_worker_time]       / [qs].[execution_count] / 1000000.0      AS AvgCpuSec,
@@ -133,13 +134,12 @@ ORDER BY $sortColumn DESC;
             Write-Verbose "Querying top $Top queries by $SortBy on $($server.DomainInstanceName)"
 
             $splatQuery = @{
-                SqlInstance     = $instance
+                SqlInstance     = $server
                 Database        = 'master'
                 Query           = $query
                 SqlParameter    = @{ TopN = $Top }
                 EnableException = $true
             }
-            if ($SqlCredential) { $splatQuery['SqlCredential'] = $SqlCredential }
 
             try {
                 $rows = Invoke-DbaQuery @splatQuery

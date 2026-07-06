@@ -23,7 +23,7 @@ Describe 'Get-LongRunningJob' {
                     }
                 }
                 # Running job whose LastRunDate is 20 minutes ago
-                Mock Get-DbaRunningJob {
+                Mock Get-DbaRunningJob -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Name        = 'DBAOps - Nightly Backup'
@@ -32,7 +32,7 @@ Describe 'Get-LongRunningJob' {
                     )
                 }
                 # History: average duration 5 minutes — so 20min is 4x average (above 2x multiplier)
-                Mock Get-DbaAgentJobHistory {
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Status   = 'Succeeded'
@@ -85,7 +85,7 @@ Describe 'Get-LongRunningJob' {
                     }
                 }
                 # Running job 20 minutes (average is 5 minutes => 4x)
-                Mock Get-DbaRunningJob {
+                Mock Get-DbaRunningJob -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Name        = 'DBAOps - Nightly Backup'
@@ -93,7 +93,7 @@ Describe 'Get-LongRunningJob' {
                         }
                     )
                 }
-                Mock Get-DbaAgentJobHistory {
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Status   = 'Succeeded'
@@ -122,6 +122,85 @@ Describe 'Get-LongRunningJob' {
         }
     }
 
+    Context 'StartDate preference' {
+        BeforeAll {
+            InModuleScope DbaToolbox {
+                Mock Connect-DbaInstance {
+                    [PSCustomObject]@{
+                        ComputerName       = 'SQL01'
+                        InstanceName       = 'MSSQLSERVER'
+                        DomainInstanceName = 'SQL01'
+                    }
+                }
+                # StartDate (from sysjobactivity) says 30 min; LastRunDate is stale (5 days old)
+                Mock Get-DbaRunningJob -RemoveParameterType 'SqlInstance' {
+                    @(
+                        [PSCustomObject]@{
+                            Name        = 'DBAOps - Nightly Backup'
+                            StartDate   = (Get-Date).AddMinutes(-30)
+                            LastRunDate = (Get-Date).AddDays(-5)
+                        }
+                    )
+                }
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' {
+                    @(
+                        [PSCustomObject]@{
+                            Status   = 'Succeeded'
+                            Job      = 'DBAOps - Nightly Backup'
+                            Duration = [timespan]::FromMinutes(5)
+                        }
+                    )
+                }
+            }
+        }
+
+        It 'Uses StartDate over LastRunDate when populated' {
+            $result = Get-LongRunningJob -SqlInstance 'SQL01'
+            $result | Should -Not -BeNullOrEmpty
+            # 30 min current vs 5 min avg = 6x, not the ~1440x a 5-day LastRunDate would give
+            $result.Multiplier | Should -BeLessThan 10
+            $result.CurrentDuration.TotalMinutes | Should -BeLessThan 40
+        }
+    }
+
+    Context 'Zero-duration history baseline' {
+        BeforeAll {
+            InModuleScope DbaToolbox {
+                Mock Connect-DbaInstance {
+                    [PSCustomObject]@{
+                        ComputerName       = 'SQL01'
+                        InstanceName       = 'MSSQLSERVER'
+                        DomainInstanceName = 'SQL01'
+                    }
+                }
+                Mock Get-DbaRunningJob -RemoveParameterType 'SqlInstance' {
+                    @(
+                        [PSCustomObject]@{
+                            Name        = 'DBAOps - Fast Job'
+                            StartDate   = (Get-Date).AddMinutes(-20)
+                            LastRunDate = (Get-Date).AddMinutes(-20)
+                        }
+                    )
+                }
+                # All successful runs report zero-second durations — no usable baseline
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' {
+                    @(
+                        [PSCustomObject]@{
+                            Status   = 'Succeeded'
+                            Job      = 'DBAOps - Fast Job'
+                            Duration = [timespan]::Zero
+                        }
+                    )
+                }
+            }
+        }
+
+        It 'Skips jobs whose average duration is zero instead of flagging with Infinity' {
+            $result = Get-LongRunningJob -SqlInstance 'SQL01'
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
     Context 'Pipeline input' {
         BeforeAll {
             InModuleScope DbaToolbox {
@@ -132,7 +211,7 @@ Describe 'Get-LongRunningJob' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Get-DbaRunningJob { @() }
+                Mock Get-DbaRunningJob -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

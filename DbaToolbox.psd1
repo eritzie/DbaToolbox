@@ -9,18 +9,22 @@
     FormatsToProcess  = @('DbaToolbox.Format.ps1xml')
     FunctionsToExport = @(
         'Find-ServerString',
+        'Get-AgHealth',
         'Get-BlockingSession',
         'Get-ConnectionSummary',
         'Get-DatabaseSize',
         'Get-DeadlockHistory',
         'Get-FailedJob',
+        'Get-FailedLogin',
         'Get-LongRunningJob',
         'Get-LongRunningQuery',
         'Get-OpenTransaction',
+        'Get-ReplicationStatus',
         'Get-TempdbConfig',
         'Get-TempdbContention',
         'Get-TopQuery',
-        'Get-VersionStoreUsage'
+        'Get-VersionStoreUsage',
+        'Get-WaitStatistic'
     )
     CmdletsToExport   = @()
     VariablesToExport = @()

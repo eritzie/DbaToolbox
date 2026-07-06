@@ -64,6 +64,7 @@
         [string] $Database = 'DBAOps',
 
         [Parameter(ParameterSetName = 'Default')]
+        [ValidateRange(1, [int]::MaxValue)]
         [int] $Top = 25,
 
         [Parameter(ParameterSetName = 'Summary')]
@@ -121,11 +122,10 @@ WHERE [DeadlockId] = @DeadlockId;
             Write-Verbose "Querying deadlock history on $($server.DomainInstanceName)"
 
             $splatBase = @{
-                SqlInstance     = $instance
+                SqlInstance     = $server
                 Database        = $Database
                 EnableException = $true
             }
-            if ($SqlCredential) { $splatBase['SqlCredential'] = $SqlCredential }
 
             if ($Summary) {
                 $splatQuery = $splatBase + @{ Query = $summaryQuery }

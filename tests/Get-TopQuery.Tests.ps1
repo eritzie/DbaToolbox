@@ -24,7 +24,7 @@ Describe 'Get-TopQuery' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
             foreach ($sortBy in 'CPU', 'LogicalReads', 'LogicalWrites') {
                 { Get-TopQuery -SqlInstance 'SQL01' -SortBy $sortBy } | Should -Not -Throw
@@ -42,7 +42,7 @@ Describe 'Get-TopQuery' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         DatabaseName       = 'AppDB'
                         ExecutionCount     = 1000
@@ -100,7 +100,7 @@ Describe 'Get-TopQuery' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

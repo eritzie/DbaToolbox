@@ -10,7 +10,8 @@
 
         With -IncludeFiles, also emits one DbaToolbox.DatabaseFile row per physical file.
         AutoGrowth is flagged with a trailing '*' when percentage-based growth is configured
-        (best practice is fixed-size growth in MB).
+        (best practice is fixed-size growth in MB). Files with autogrowth turned off
+        (growth = 0) show 'Disabled'.
 
         Size properties from Get-DbaDbFile are [dbasize] objects and must be cast with
         [long] before arithmetic — calling .Bytes is not supported.
@@ -80,10 +81,9 @@
             Write-Verbose "Getting database file info on $($server.DomainInstanceName)"
 
             $splatFiles = @{
-                SqlInstance = $instance
+                SqlInstance = $server
             }
-            if ($SqlCredential) { $splatFiles['SqlCredential'] = $SqlCredential }
-            if ($Database)      { $splatFiles['Database']      = $Database      }
+            if ($Database) { $splatFiles['Database'] = $Database }
 
             try {
                 $allFiles = Get-DbaDbFile @splatFiles
@@ -124,6 +124,8 @@
                     $pct    = if ($s -gt 0) { [math]::Round([long]$file.UsedSpace * 100.0 / $s, 1) } else { 0 }
                     $growth = if ($file.GrowthType -eq 'Percent') {
                         "$($file.Growth)% *"
+                    } elseif (([long]$file.Growth) -eq 0) {
+                        'Disabled'
                     } else {
                         "$([math]::Round([long]$file.NextGrowthEventSize / 1MB, 0)) MB"
                     }

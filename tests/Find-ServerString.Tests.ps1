@@ -25,8 +25,8 @@ Describe 'Find-ServerString' {
         It 'Accepts all valid Type values without throwing' {
             InModuleScope DbaToolbox {
                 Mock Connect-DbaInstance { [PSCustomObject]@{ ComputerName = 'SQL01'; InstanceName = 'MSSQLSERVER'; DomainInstanceName = 'SQL01' } }
-                Mock Get-DbaDatabase     { @() }
-                Mock Invoke-DbaQuery     { @() }
+                Mock Get-DbaDatabase -RemoveParameterType 'SqlInstance'     { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance'     { @() }
             }
             { Find-ServerString -SqlInstance 'SQL01' -SearchString 'test' `
                     -Type 'SqlModules', 'AgentJobs', 'LinkedServers' } |
@@ -44,10 +44,10 @@ Describe 'Find-ServerString' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaDatabase {
+                Mock Get-DbaDatabase -RemoveParameterType 'SqlInstance' {
                     @( [PSCustomObject]@{ Name = 'AppDB' } )
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         SchemaName = 'dbo'
                         ObjectName = 'usp_GetData'
@@ -91,7 +91,7 @@ Describe 'Find-ServerString' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         JobName  = 'Nightly Backup'
                         StepID   = 1
@@ -131,7 +131,7 @@ Describe 'Find-ServerString' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         LinkedServerName = 'OLDSERVER'
                         Product          = 'SQL Server'
@@ -170,8 +170,8 @@ Describe 'Find-ServerString' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Get-DbaDatabase { @() }
-                Mock Invoke-DbaQuery { @() }
+                Mock Get-DbaDatabase -RemoveParameterType 'SqlInstance' { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 
@@ -191,10 +191,10 @@ Describe 'Find-ServerString' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaDatabase {
+                Mock Get-DbaDatabase -RemoveParameterType 'SqlInstance' {
                     @( [PSCustomObject]@{ Name = 'AppDB' } )
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         SchemaName = 'dbo'
                         ObjectName = 'usp_Test'

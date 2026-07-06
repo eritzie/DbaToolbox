@@ -22,7 +22,7 @@ Describe 'Get-TempdbContention' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         session_id           = 55
                         exec_context_id      = 0
@@ -53,9 +53,49 @@ Describe 'Get-TempdbContention' {
             $props  | Should -Contain 'WaitType'
             $props  | Should -Contain 'WaitDurationMs'
             $props  | Should -Contain 'ResourceDescription'
+            $props  | Should -Contain 'PageType'
             $props  | Should -Contain 'LoginName'
             $props  | Should -Contain 'HostName'
             $props  | Should -Contain 'ProgramName'
+        }
+    }
+
+    Context 'PageType classification' {
+        BeforeAll {
+            InModuleScope DbaToolbox {
+                Mock Connect-DbaInstance {
+                    [PSCustomObject]@{
+                        ComputerName       = 'SQL01'
+                        InstanceName       = 'MSSQLSERVER'
+                        DomainInstanceName = 'SQL01'
+                    }
+                }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
+                    foreach ($rd in '2:1:1', '2:1:8088', '2:3:2', '2:1:511232', '2:2:3', '2:1:511233', '2:1:500') {
+                        [PSCustomObject]@{
+                            session_id           = 55
+                            exec_context_id      = 0
+                            wait_type            = 'PAGELATCH_UP'
+                            wait_duration_ms     = 100
+                            resource_description = $rd
+                            login_name           = 'domain\user1'
+                            host_name            = 'WKSTN01'
+                            program_name         = 'App'
+                        }
+                    }
+                }
+            }
+        }
+
+        It 'Classifies PFS, GAM, SGAM, and Other pages' {
+            $result = @(Get-TempdbContention -SqlInstance 'SQL01')
+            ($result | Where-Object ResourceDescription -eq '2:1:1').PageType      | Should -Be 'PFS'
+            ($result | Where-Object ResourceDescription -eq '2:1:8088').PageType   | Should -Be 'PFS'
+            ($result | Where-Object ResourceDescription -eq '2:3:2').PageType      | Should -Be 'GAM'
+            ($result | Where-Object ResourceDescription -eq '2:1:511232').PageType | Should -Be 'GAM'
+            ($result | Where-Object ResourceDescription -eq '2:2:3').PageType      | Should -Be 'SGAM'
+            ($result | Where-Object ResourceDescription -eq '2:1:511233').PageType | Should -Be 'SGAM'
+            ($result | Where-Object ResourceDescription -eq '2:1:500').PageType    | Should -Be 'Other'
         }
     }
 
@@ -69,7 +109,7 @@ Describe 'Get-TempdbContention' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 
@@ -89,7 +129,7 @@ Describe 'Get-TempdbContention' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

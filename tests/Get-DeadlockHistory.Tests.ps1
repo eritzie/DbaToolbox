@@ -22,7 +22,7 @@ Describe 'Get-DeadlockHistory' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         DeadlockId    = 42
                         EventTime     = [datetime]'2026-06-09 10:00:00'
@@ -60,7 +60,7 @@ Describe 'Get-DeadlockHistory' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         DatabaseName  = 'AppDB'
                         DeadlockCount = 15
@@ -96,7 +96,7 @@ Describe 'Get-DeadlockHistory' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Invoke-DbaQuery {
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' {
                     [PSCustomObject]@{
                         DeadlockId    = 42
                         EventTime     = [datetime]'2026-06-09 10:00:00'
@@ -129,7 +129,7 @@ Describe 'Get-DeadlockHistory' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Invoke-DbaQuery { @() }
+                Mock Invoke-DbaQuery -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

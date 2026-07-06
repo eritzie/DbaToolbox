@@ -8,9 +8,13 @@
         sessions that are blocked or acting as head blockers. Only sessions with a non-zero
         blocking_session_id or a positive blocked_session_count are returned.
 
-        With -Detailed, adds lock XML and parallel worker thread information via -GetLocks
-        and -GetTaskInfo 2. GetTaskInfo 2 includes parallel worker threads, which can add
-        noise when parallel queries are running — omit it for cleaner output in those cases.
+        With -Detailed, adds lock XML, parallel worker thread information, and the outer
+        command via -GetLocks, -GetTaskInfo 2, and -GetOuterCommand. GetTaskInfo 2 includes
+        parallel worker threads, which can add noise when parallel queries are running —
+        omit it for cleaner output in those cases.
+
+        WaitInfo is the raw sp_WhoIsActive wait_info string, e.g. '(32440753ms)LCK_M_S' —
+        duration and wait type combined; aggregated forms appear when multiple tasks wait.
 
         Requires sp_WhoIsActive installed in master on each instance.
         Install with: Install-DbaWhoIsActive -SqlInstance <instance>
@@ -23,8 +27,8 @@
         Login to use instead of Windows Authentication.
 
     .PARAMETER Detailed
-        Adds lock XML (Locks) and outer command (SqlCommand) to output. Uses -GetLocks
-        and -GetTaskInfo 2 in the sp_WhoIsActive call.
+        Adds lock XML (Locks) and outer command (SqlCommand) to output. Uses -GetLocks,
+        -GetTaskInfo 2, and -GetOuterCommand in the sp_WhoIsActive call.
 
     .PARAMETER EnableException
         By default, when something goes wrong the function writes a warning and continues.
@@ -70,12 +74,11 @@
             Write-Verbose "Checking for blocking sessions on $($server.DomainInstanceName)"
 
             $splatWia = @{
-                SqlInstance      = $instance
+                SqlInstance      = $server
                 FindBlockLeaders = $true
                 As               = 'PSObject'
             }
-            if ($Detailed)      { $splatWia['GetLocks'] = $true; $splatWia['GetTaskInfo'] = 2 }
-            if ($SqlCredential) { $splatWia['SqlCredential'] = $SqlCredential }
+            if ($Detailed) { $splatWia['GetLocks'] = $true; $splatWia['GetTaskInfo'] = 2; $splatWia['GetOuterCommand'] = $true }
 
             try {
                 $sessions = Invoke-DbaWhoIsActive @splatWia
@@ -97,8 +100,8 @@
                     SessionId           = $session.session_id -as [int]
                     BlockingSessionId   = $session.blocking_session_id -as [int]
                     BlockedSessionCount = $session.blocked_session_count -as [int]
-                    WaitType            = $session.wait_type
-                    WaitTime            = $session.wait_time
+                    WaitInfo            = $session.wait_info
+                    StartTime           = $session.start_time
                     DatabaseName        = $session.database_name
                     LoginName           = $session.login_name
                     SqlText             = $session.sql_text

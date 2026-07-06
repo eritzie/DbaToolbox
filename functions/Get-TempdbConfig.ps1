@@ -85,13 +85,11 @@ ORDER BY [f].[type_desc], [f].[file_id];
             Write-Verbose "Checking TempDB configuration on $($server.DomainInstanceName)"
 
             # --- Best Practice Check ---
-            $splatBp = @{
-                SqlInstance = $instance
-            }
-            if ($SqlCredential) { $splatBp['SqlCredential'] = $SqlCredential }
+            # Reset per instance: a failed check must not re-emit the prior instance's rows
+            $bpResults = $null
 
             try {
-                $bpResults = Test-DbaTempDbConfig @splatBp
+                $bpResults = Test-DbaTempDbConfig -SqlInstance $server
             } catch {
                 if ($EnableException) { throw }
                 Write-Warning "Get-TempdbConfig: Test-DbaTempDbConfig failed on $instance : $_"
@@ -113,12 +111,11 @@ ORDER BY [f].[type_desc], [f].[file_id];
 
             # --- File Detail ---
             $splatFile = @{
-                SqlInstance     = $instance
+                SqlInstance     = $server
                 Database        = 'tempdb'
                 Query           = $fileQuery
                 EnableException = $true
             }
-            if ($SqlCredential) { $splatFile['SqlCredential'] = $SqlCredential }
 
             try {
                 $fileRows = Invoke-DbaQuery @splatFile

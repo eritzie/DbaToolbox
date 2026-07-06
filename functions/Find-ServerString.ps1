@@ -143,10 +143,9 @@ WHERE s.is_linked = 1
             # --- SQL Modules ---
             if ('SqlModules' -in $Type) {
                 $splatGetDb = @{
-                    SqlInstance   = $instance
+                    SqlInstance   = $server
                     ExcludeSystem = (-not $IncludeSystemDatabases.IsPresent)
                 }
-                if ($SqlCredential)   { $splatGetDb['SqlCredential']   = $SqlCredential }
                 if ($Database)        { $splatGetDb['Database']        = $Database }
                 if ($ExcludeDatabase) { $splatGetDb['ExcludeDatabase'] = $ExcludeDatabase }
 
@@ -154,13 +153,12 @@ WHERE s.is_linked = 1
                     Write-Verbose "Searching SQL modules in [$($db.Name)] on $($server.DomainInstanceName)"
 
                     $splatModuleQuery = @{
-                        SqlInstance     = $instance
+                        SqlInstance     = $server
                         Database        = $db.Name
                         Query           = $sqlModulesQuery
                         SqlParameter    = $sqlParam
                         EnableException = $true
                     }
-                    if ($SqlCredential) { $splatModuleQuery['SqlCredential'] = $SqlCredential }
 
                     try {
                         $rows = Invoke-DbaQuery @splatModuleQuery
@@ -193,13 +191,12 @@ WHERE s.is_linked = 1
                 Write-Verbose "Searching Agent job steps on $($server.DomainInstanceName)"
 
                 $splatAgentQuery = @{
-                    SqlInstance     = $instance
+                    SqlInstance     = $server
                     Database        = 'msdb'
                     Query           = $agentJobsQuery
                     SqlParameter    = $sqlParam
                     EnableException = $true
                 }
-                if ($SqlCredential) { $splatAgentQuery['SqlCredential'] = $SqlCredential }
 
                 try {
                     $rows = Invoke-DbaQuery @splatAgentQuery
@@ -231,12 +228,11 @@ WHERE s.is_linked = 1
                 Write-Verbose "Searching linked servers on $($server.DomainInstanceName)"
 
                 $splatLinkedQuery = @{
-                    SqlInstance     = $instance
+                    SqlInstance     = $server
                     Query           = $linkedServersQuery
                     SqlParameter    = $sqlParam
                     EnableException = $true
                 }
-                if ($SqlCredential) { $splatLinkedQuery['SqlCredential'] = $SqlCredential }
 
                 try {
                     $rows = Invoke-DbaQuery @splatLinkedQuery

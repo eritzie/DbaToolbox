@@ -22,7 +22,7 @@ Describe 'Get-FailedJob' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaAgentJobHistory {
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Status   = 'Failed'
@@ -69,7 +69,7 @@ Describe 'Get-FailedJob' {
                         DomainInstanceName = 'SQL01'
                     }
                 }
-                Mock Get-DbaAgentJobHistory {
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' {
                     @(
                         [PSCustomObject]@{
                             Status   = 'Failed'
@@ -119,7 +119,7 @@ Describe 'Get-FailedJob' {
                         DomainInstanceName = $SqlInstance.ToString()
                     }
                 }
-                Mock Get-DbaAgentJobHistory { @() }
+                Mock Get-DbaAgentJobHistory -RemoveParameterType 'SqlInstance' { @() }
             }
         }
 

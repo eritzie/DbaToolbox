@@ -44,7 +44,7 @@
           <TableColumnHeader><Label>SessionId</Label><Width>10</Width></TableColumnHeader>
           <TableColumnHeader><Label>BlockingSessionId</Label><Width>17</Width></TableColumnHeader>
           <TableColumnHeader><Label>BlockedSessionCount</Label><Width>19</Width></TableColumnHeader>
-          <TableColumnHeader><Label>WaitType</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitInfo</Label><Width>28</Width></TableColumnHeader>
           <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
           <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
         </TableHeaders>
@@ -55,7 +55,7 @@
               <TableColumnItem><PropertyName>SessionId</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>BlockingSessionId</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>BlockedSessionCount</PropertyName></TableColumnItem>
-              <TableColumnItem><PropertyName>WaitType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitInfo</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
             </TableColumnItems>
@@ -437,6 +437,7 @@
           <TableColumnHeader><Label>WaitType</Label><Width>18</Width></TableColumnHeader>
           <TableColumnHeader><Label>WaitDurationMs</Label><Width>14</Width></TableColumnHeader>
           <TableColumnHeader><Label>ResourceDescription</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PageType</Label><Width>8</Width></TableColumnHeader>
           <TableColumnHeader><Label>LoginName</Label><Width>30</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -447,6 +448,7 @@
               <TableColumnItem><PropertyName>WaitType</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>WaitDurationMs</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>ResourceDescription</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PageType</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>LoginName</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -554,6 +556,226 @@
               <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>SnapshotState</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>RCSIEnabled</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-WaitStatistic (cumulative) -->
+    <View>
+      <Name>DbaToolbox.WaitStatistic</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.WaitStatistic</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitType</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitSeconds</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitCount</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Percentage</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AverageWaitSeconds</Label><Width>18</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitSeconds</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Percentage</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AverageWaitSeconds</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-WaitStatistic -SampleSeconds (delta) -->
+    <View>
+      <Name>DbaToolbox.WaitSample</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.WaitSample</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitType</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitSecondsDelta</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WaitCountDelta</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Percentage</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SampleSeconds</Label><Width>13</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitSecondsDelta</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WaitCountDelta</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Percentage</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SampleSeconds</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-FailedLogin -->
+    <View>
+      <Name>DbaToolbox.FailedLogin</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.FailedLogin</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Login</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Reason</Label><Width>45</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ClientAddress</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FailureCount</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastSeen</Label><Width>23</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Login</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Reason</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ClientAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FailureCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastSeen</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-AgHealth (replica) -->
+    <View>
+      <Name>DbaToolbox.AgReplicaHealth</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.AgReplicaHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AvailabilityGroup</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ReplicaName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Role</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ConnectionState</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SynchronizationState</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AvailabilityMode</Label><Width>22</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AvailabilityGroup</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ReplicaName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Role</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ConnectionState</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SynchronizationState</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AvailabilityMode</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-AgHealth (database) -->
+    <View>
+      <Name>DbaToolbox.AgDatabaseHealth</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.AgDatabaseHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ReplicaName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SynchronizationState</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IsSuspended</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LogSendQueueKB</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>RedoQueueKB</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>EstimatedDataLossSec</Label><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ReplicaName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SynchronizationState</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsSuspended</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LogSendQueueKB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RedoQueueKB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EstimatedDataLossSec</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-ReplicationStatus (publication) -->
+    <View>
+      <Name>DbaToolbox.ReplPublication</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.ReplPublication</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PublicationName</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ArticleCount</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SubscriptionCount</Label><Width>17</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PublicationName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Type</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ArticleCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SubscriptionCount</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- Get-ReplicationStatus (subscription) -->
+    <View>
+      <Name>DbaToolbox.ReplSubscription</Name>
+      <ViewSelectedBy>
+        <TypeName>DbaToolbox.ReplSubscription</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SqlInstance</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DatabaseName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PublicationName</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SubscriberName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SubscriptionDb</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SubscriptionType</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SqlInstance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DatabaseName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PublicationName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SubscriberName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SubscriptionDb</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SubscriptionType</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>

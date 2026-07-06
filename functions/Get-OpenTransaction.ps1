@@ -57,12 +57,11 @@
             Write-Verbose "Checking for open transactions on $($server.DomainInstanceName)"
 
             $splatWia = @{
-                SqlInstance        = $instance
+                SqlInstance        = $server
                 GetTransactionInfo = $true
                 ShowSleepingSpids  = 2
                 As                 = 'PSObject'
             }
-            if ($SqlCredential) { $splatWia['SqlCredential'] = $SqlCredential }
 
             try {
                 $sessions = Invoke-DbaWhoIsActive @splatWia
@@ -73,22 +72,24 @@
             }
 
             foreach ($session in ($sessions | Where-Object {
-                ($null -ne $_.tran_start_time) -and ($_.tran_start_time -ne '')
+                ($_.open_tran_count -as [int]) -gt 0
             })) {
                 [PSCustomObject]@{
-                    PSTypeName         = 'DbaToolbox.OpenTransaction'
-                    ComputerName       = $server.ComputerName
-                    InstanceName       = $server.InstanceName
-                    SqlInstance        = $server.DomainInstanceName
-                    SessionId          = $session.session_id -as [int]
-                    Status             = $session.status
-                    BlockingSessionId  = $session.blocking_session_id -as [int]
-                    TranStartTime      = $session.tran_start_time
-                    TranLogUsedPercent = $session.tran_log_used_percent
-                    DatabaseName       = $session.database_name
-                    LoginName          = $session.login_name
-                    HostName           = $session.host_name
-                    SqlText            = $session.sql_text
+                    PSTypeName        = 'DbaToolbox.OpenTransaction'
+                    ComputerName      = $server.ComputerName
+                    InstanceName      = $server.InstanceName
+                    SqlInstance       = $server.DomainInstanceName
+                    SessionId         = $session.session_id -as [int]
+                    Status            = $session.status
+                    BlockingSessionId = $session.blocking_session_id -as [int]
+                    OpenTranCount     = $session.open_tran_count -as [int]
+                    TranStartTime     = $session.tran_start_time
+                    TranLogWrites     = $session.tran_log_writes
+                    ImplicitTran      = $session.implicit_tran
+                    DatabaseName      = $session.database_name
+                    LoginName         = $session.login_name
+                    HostName          = $session.host_name
+                    SqlText           = $session.sql_text
                 }
             }
         }

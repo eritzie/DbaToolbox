@@ -5,11 +5,11 @@
 
     .DESCRIPTION
         Retrieves all non-system processes from one or more SQL Server instances via Get-DbaProcess,
-        then groups them by Database, Login, Host, Program, Status, Command, and WaitType.
+        then groups them by Database, Login, Host, Program, Status, and Command.
         ConnectionCount reflects how many sessions share that profile.
 
         Use Database, Login, and HostName to narrow results to a specific context.
-        Idle sessions show null for request columns (Command, WaitType) — that is normal.
+        Idle sessions show null for the Command column — that is normal.
 
     .PARAMETER SqlInstance
         One or more SQL Server instances to query. Accepts strings, DbaInstanceParameter
@@ -74,14 +74,8 @@
 
             Write-Verbose "Getting active processes on $($server.DomainInstanceName)"
 
-            $splatProcess = @{
-                SqlInstance        = $instance
-                ExcludeSystemSpids = $true
-            }
-            if ($SqlCredential) { $splatProcess['SqlCredential'] = $SqlCredential }
-
             try {
-                $results = Get-DbaProcess @splatProcess
+                $results = Get-DbaProcess -SqlInstance $server -ExcludeSystemSpids
             } catch {
                 if ($EnableException) { throw }
                 Write-Warning "Get-ConnectionSummary: Failed to retrieve processes from $instance : $_"
@@ -93,7 +87,7 @@
             if ($HostName) { $results = $results | Where-Object Host     -eq $HostName }
 
             $results |
-                Group-Object -Property Database, Login, Host, Program, Status, Command, WaitType |
+                Group-Object -Property Database, Login, Host, Program, Status, Command |
                 ForEach-Object {
                     [PSCustomObject]@{
                         PSTypeName      = 'DbaToolbox.ConnectionSummary'
@@ -106,7 +100,6 @@
                         Program         = $_.Group[0].Program
                         Status          = $_.Group[0].Status
                         Command         = $_.Group[0].Command
-                        WaitType        = $_.Group[0].WaitType
                         ConnectionCount = $_.Count
                     }
                 }
